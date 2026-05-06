@@ -1,53 +1,32 @@
-# Noise Distribution Sensitivity in Diffusion Models
+﻿# Noise Distribution Sensitivity and Battery Sentinel
 
 ## Overview
 
-This repository studies the sensitivity of diffusion-model training and sampling to the choice of forward-process noise distribution. The experimental setting is intentionally controlled: the dataset, architecture, optimizer, schedule, random seed, and training budget are held fixed while the forward noise distribution is varied across three cases:
+This repository is organized as a two-layer study.
 
-- Gaussian
-- Uniform
-- Laplace
+The first layer is a controlled diffusion experiment on MNIST. It examines how the forward-process noise distribution changes optimization behavior and generated samples when the rest of the DDPM-style pipeline is held fixed.
 
-The implementation is organized as a notebook-first workflow for Google Colab, with saved artifacts for checkpoints, logs, figures, and generated samples.
+The second layer, **Battery Sentinel**, transfers the same three uncertainty regimes to a battery-monitoring setting. In that branch, Gaussian, Uniform, and Laplace are no longer treated as alternative image-generation settings only; they become three operational uncertainty modes for a diagnostic system:
 
-## Research Scope
+- Gaussian: normal operating variation
+- Uniform: bounded or quantized telemetry degradation
+- Laplace: impulsive anomalous behavior
 
-The repository addresses the following question:
+The project therefore moves from a foundational generative-model study to an applied uncertainty-routing system.
 
-> How do matched-variance Gaussian, Uniform, and Laplace forward-noise choices affect denoising optimization and generated samples in a controlled DDPM-style MNIST experiment?
+## Layer 1: Foundational Diffusion Study
 
-Two methodological distinctions are central to this study:
+### Research question
 
-- The Gaussian branch is the exact DDPM baseline under the standard closed-form forward-process shortcut.
-- The Uniform and Laplace branches are matched-variance surrogate direct-corruption experiments and should not be interpreted as identical forward-process laws.
+> How does the forward-process noise distribution affect denoising optimization and generated samples in a controlled DDPM-style MNIST experiment?
 
-All displayed generations are produced with the standard Gaussian DDPM reverse update used in the project notebooks.
+### Methodological framing
 
-## Repository Layout
+- The Gaussian branch is the exact DDPM baseline under the notebook implementation.
+- The Uniform and Laplace branches are matched-variance surrogate direct-corruption branches.
+- All displayed generations use the shared Gaussian reverse sampler implemented in the training and evaluation notebooks.
 
-```text
-.
-├── notebook1_setup.ipynb
-├── notebook2_forward_process.ipynb
-├── notebook3_architecture.ipynb
-├── notebook4_training.ipynb
-├── notebook5_evaluation.ipynb
-├── notebook6_writeup.ipynb
-├── diffusion_noise_project/
-│   └── diffusion_noise_project/
-│       ├── checkpoints/
-│       ├── figures/
-│       ├── logs/
-│       ├── samples/
-│       ├── tensorboard/
-│       ├── config.json
-│       └── unet.py
-└── Original_Executed/
-```
-
-## Notebook Workflow
-
-The recommended execution order is:
+### Core notebook workflow
 
 1. `notebook1_setup.ipynb`
 2. `notebook2_forward_process.ipynb`
@@ -56,18 +35,18 @@ The recommended execution order is:
 5. `notebook5_evaluation.ipynb`
 6. `notebook6_writeup.ipynb`
 
-The notebooks have distinct roles:
+### Roles of notebooks 1 to 6
 
-- `notebook1_setup.ipynb`: environment setup, Drive mounting, shared configuration, MNIST preview, and schedule export.
-- `notebook2_forward_process.ipynb`: forward-process classes, distribution checks, corruption visualizations, and the closed-form versus iterative kurtosis diagnostic.
-- `notebook3_architecture.ipynb`: compact U-Net definition used in the training and evaluation notebooks.
-- `notebook4_training.ipynb`: full three-run training campaign for Gaussian, Uniform, and Laplace under shared controls.
-- `notebook5_evaluation.ipynb`: loss comparison, denoising MSE evaluation, generated samples, trajectories, and summary export.
-- `notebook6_writeup.ipynb`: report dashboard, artifact index, and export-oriented presentation layer.
+- `notebook1_setup.ipynb`: environment setup, configuration, data loading, and schedule export.
+- `notebook2_forward_process.ipynb`: forward-process construction, distribution checks, corruption visualizations, and methodological diagnostics.
+- `notebook3_architecture.ipynb`: compact U-Net definition shared by the experiment.
+- `notebook4_training.ipynb`: three-run training campaign for Gaussian, Uniform, and Laplace under shared controls.
+- `notebook5_evaluation.ipynb`: loss comparison, denoising MSE evaluation, sample comparisons, and summary export.
+- `notebook6_writeup.ipynb`: final synthesis notebook for the foundational study.
 
-## Experimental Protocol
+### Experimental protocol
 
-The executed campaign stored in `diffusion_noise_project/diffusion_noise_project/` used the following settings:
+The executed MNIST campaign stored in `diffusion_noise_project/diffusion_noise_project/` uses the following shared controls:
 
 | Item | Value |
 | --- | --- |
@@ -76,115 +55,179 @@ The executed campaign stored in `diffusion_noise_project/diffusion_noise_project
 | Channels | 1 |
 | Forward steps `T` | 1000 |
 | Beta schedule | Linear |
-| `beta_start` | 1e-4 |
-| `beta_end` | 0.02 |
+| `beta_start` | `1e-4` |
+| `beta_end` | `0.02` |
 | U-Net base width | 64 |
 | Channel multipliers | `(1, 2, 4)` |
 | Optimizer | AdamW |
-| Learning rate | 2e-4 |
-| Weight decay | 1e-4 |
+| Learning rate | `2e-4` |
+| Weight decay | `1e-4` |
 | Epochs per run | 30 |
 | Batch size | 256 |
 | Seed | 42 |
 
-Shared experimental controls for the three runs:
+### Recorded artifact table
 
-- same architecture
-- same optimizer
-- same training budget
-- same initialization seed
-- same data-order seed
+| Distribution | Role | Final epoch loss | Avg denoising MSE | MSE at `t=500` | MSE at `t=999` |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Gaussian | Exact DDPM baseline | 0.02204 | 0.02258 | 0.01345 | 0.00044 |
+| Uniform | Matched-variance surrogate | 0.01862 | 0.01947 | 0.00739 | 0.00010 |
+| Laplace | Matched-variance surrogate | 0.02045 | 0.02092 | 0.01091 | 0.00013 |
 
-## Current Artifact Record
+### Selected figures
 
-The current experiment directory contains complete runs for all three noise types together with their evaluation summary.
-
-| Distribution | Role | Final epoch loss | Avg denoising MSE | MSE at `t=500` | MSE at `t=999` | Sample variance | Runtime (min) |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Gaussian | Exact DDPM baseline | 0.02204 | 0.02258 | 0.01345 | 0.00044 | 0.29293 | 23.12 |
-| Uniform | Matched-variance surrogate | 0.01862 | 0.01947 | 0.00739 | 0.00010 | 0.47876 | 22.51 |
-| Laplace | Matched-variance surrogate | 0.02045 | 0.02092 | 0.01091 | 0.00013 | 0.48622 | 22.54 |
-
-These values are taken from:
-
-- `logs/training_campaign_summary.json`
-- `logs/evaluation_summary.json`
-
-## Selected Figures
-
-### Forward-process diagnostic
-
-This diagnostic distinguishes the exact Gaussian closed-form shortcut from the non-Gaussian iterative chains.
+#### Forward-process diagnostic
 
 ![Forward-process kurtosis diagnostic](diffusion_noise_project/diffusion_noise_project/figures/kurtosis_diagnostic.png)
 
-### Training-loss comparison
-
-This figure reports epoch-average loss and normalized loss under the shared training controls.
+#### Training-loss comparison
 
 ![Training loss comparison](diffusion_noise_project/diffusion_noise_project/figures/loss_comparison.png)
 
-### Denoising MSE across timesteps
-
-This evaluation summarizes epsilon-prediction error across representative timesteps and reports the deviation of the non-Gaussian runs relative to the Gaussian baseline.
-
-![Denoising MSE across timesteps](diffusion_noise_project/diffusion_noise_project/figures/mse_vs_timestep.png)
-
-### Generated samples
-
-This panel shows the three trained models under the shared Gaussian DDPM reverse sampler used in the project notebooks.
+#### Generated samples
 
 ![Generated samples by noise type](diffusion_noise_project/diffusion_noise_project/figures/samples_comparison.png)
 
-### Summary dashboard
+## Layer 2: Battery Sentinel
 
-The final report notebook assembles a compact dashboard from the saved artifacts.
+### System concept
 
-![Summary dashboard](diffusion_noise_project/diffusion_noise_project/figures/summary_figure.png)
+Battery Sentinel is a tri-noise uncertainty-routing prototype for EV battery monitoring. It reuses the three uncertainty families established in the foundational diffusion study and maps them to a time-series diagnostic setting:
 
-## Output Structure
+- **Gaussian regime**: nominal thermal and electrical variation
+- **Uniform regime**: bounded telemetry error, coarse measurement resolution, or quantization effects
+- **Laplace regime**: sparse spikes, abrupt deviations, and anomaly-like events
 
-The main generated outputs are organized as follows:
+The objective is not only to detect abnormal behavior, but also to characterize the *type* of uncertainty that is driving the deviation.
 
-- `checkpoints/gaussian`, `checkpoints/uniform`, `checkpoints/laplace`: saved model checkpoints every five epochs and at the final epoch.
-- `logs/*_loss.csv`: per-run training-loss logs.
-- `logs/*_run_info.json`: per-run metadata and runtime record.
-- `logs/training_campaign_summary.json`: campaign-wide training summary.
-- `logs/evaluation_summary.json`: compact evaluation summary used by the final write-up notebook.
-- `samples/*_final.png`: per-run final sample grids.
-- `figures/`: exported plots and report figures.
-- `tensorboard/`: per-run TensorBoard event files.
+### Applied research question
 
-## Reproduction
+> Can the three uncertainty regimes identified in the diffusion study be reused as an interpretable routing layer for battery-behavior monitoring and anomaly triage?
 
-The project is designed for Google Colab with Google Drive as persistent storage.
+### Battery Sentinel workflow
 
-Minimal execution procedure:
+7. `notebook7_battery_sentinel_data.ipynb`
+8. `notebook8_battery_sentinel_twin.ipynb`
+9. `notebook9_battery_sentinel_router.ipynb`
+10. `notebook10_battery_sentinel_dashboard.ipynb`
 
-1. upload or clone the repository into a Colab-accessible workspace
-2. open each notebook in order
-3. run all cells
-4. keep the default Drive output root used by the notebooks, or edit `PROJECT_DIR` consistently across the notebook set
+### Roles of notebooks 7 to 10
 
-The current notebooks assume:
+- `notebook7_battery_sentinel_data.ipynb`: synthetic battery-session generation and explicit regime design.
+- `notebook8_battery_sentinel_twin.ipynb`: nominal predictive twin trained on Gaussian sessions.
+- `notebook9_battery_sentinel_router.ipynb`: residual-based routing between Gaussian, Uniform, and Laplace uncertainty regimes.
+- `notebook10_battery_sentinel_dashboard.ipynb`: integrated summary tying the original diffusion study to the battery-monitoring application.
 
-- PyTorch with CUDA support
-- Google Drive mounting via Colab
-- artifact persistence in `/content/drive/MyDrive/diffusion_noise_project`
+### Expected outputs
 
-## Methodological Notes
+After running notebooks 7 to 10, the following structure is created under `diffusion_noise_project/diffusion_noise_project/battery_sentinel/`:
 
-The README records the protocol used in the repository and the meaning of the saved artifacts. Three points should be kept explicit when reading the outputs:
+- `data/`
+  - `battery_sentinel_dataset.npz`
+  - `battery_sentinel_metadata.csv`
+- `models/`
+  - `battery_twin_gru.pt`
+  - `battery_twin_scalers.npz`
+- `logs/`
+  - `simulation_summary.json`
+  - `twin_training_summary.json`
+  - `twin_regime_metrics.csv`
+  - `router_predictions.csv`
+  - `router_metrics.json`
+  - `battery_sentinel_summary.json`
+- `figures/`
+  - `battery_regime_examples.png`
+  - `battery_twin_training_curves.png`
+  - `battery_router_confusion.png`
+  - `battery_router_case_studies.png`
+  - `battery_sentinel_dashboard.png`
 
-1. The Gaussian branch is the exact DDPM baseline in this notebook implementation.
-2. The Uniform and Laplace branches are matched-variance surrogate direct-corruption experiments.
-3. The reverse sampling step remains Gaussian in the generated-sample sections of the notebook workflow.
+### Operational interpretation
 
-## Export and Presentation
+The router outputs a regime label and a suggested operational response:
 
-The executed notebooks can be exported directly from Colab as HTML. The final notebook also supports an optional Quarto-based export path:
+- Gaussian -> `monitor_normal_operation`
+- Uniform -> `request_higher_resolution_telemetry`
+- Laplace -> `raise_inspection_alert`
 
-```bash
-quarto render notebook6_writeup.ipynb --to html
-quarto render notebook6_writeup.ipynb --to pdf
+This transforms the project from a generative comparison into an interpretable monitoring system.
+
+## Repository Layout
+
+```text
+.
+|-- docs/
+|   `-- slides.qmd
+|-- notebook1_setup.ipynb
+|-- notebook2_forward_process.ipynb
+|-- notebook3_architecture.ipynb
+|-- notebook4_training.ipynb
+|-- notebook5_evaluation.ipynb
+|-- notebook6_writeup.ipynb
+|-- notebook7_battery_sentinel_data.ipynb
+|-- notebook8_battery_sentinel_twin.ipynb
+|-- notebook9_battery_sentinel_router.ipynb
+|-- notebook10_battery_sentinel_dashboard.ipynb
+|-- research_extension/
+|-- research_extension_output/
+|-- diffusion_noise_project/
+|   `-- diffusion_noise_project/
+|       |-- checkpoints/
+|       |-- figures/
+|       |-- logs/
+|       |-- samples/
+|       |-- tensorboard/
+|       |-- battery_sentinel/
+|       |-- config.json
+|       `-- unet.py
+`-- Original_Executed/
 ```
+
+## Execution Order
+
+### Foundational study
+
+Run the first six notebooks in order:
+
+1. `notebook1_setup.ipynb`
+2. `notebook2_forward_process.ipynb`
+3. `notebook3_architecture.ipynb`
+4. `notebook4_training.ipynb`
+5. `notebook5_evaluation.ipynb`
+6. `notebook6_writeup.ipynb`
+
+### Applied extension
+
+Then run the Battery Sentinel branch:
+
+7. `notebook7_battery_sentinel_data.ipynb`
+8. `notebook8_battery_sentinel_twin.ipynb`
+9. `notebook9_battery_sentinel_router.ipynb`
+10. `notebook10_battery_sentinel_dashboard.ipynb`
+
+## Local Companion Interfaces
+
+Two optional local services are kept for browsing and presentation support:
+
+- `:9000` = research explorer
+- `:9001` = slides
+
+Start them with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start_research_stack.ps1
+```
+
+Stop them with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\stop_research_stack.ps1
+```
+
+## What to expect after execution
+
+After the full workflow:
+
+- notebooks `1` to `6` provide the controlled diffusion study and its saved artifacts;
+- notebooks `7` to `10` provide a coherent applied branch that reuses the same three uncertainty regimes in a battery-monitoring system;
+- `notebook10_battery_sentinel_dashboard.ipynb` acts as the bridge between the foundational study and the applied prototype.

@@ -1,107 +1,74 @@
-# Resume des modifications
+﻿# Resume des modifications ajoutees
 
-Ce fichier explique simplement les changements faits dans les notebooks racine du projet.
+Ce depot est maintenant organise en deux couches coherentes.
 
-Important :
-- le dossier `Original_Executed` n'a pas ete modifie ;
-- il reste la reference de l'ancien etat execute ;
-- les changements ont ete faits uniquement dans les notebooks racine.
+## 1. Noyau initial du projet
 
-## Idee generale
+Le coeur experimental reste strictement base sur les notebooks suivants :
 
-Le but de cette passe etait de rendre le projet plus pratique a executer et plus solide a presenter :
-- un seul passage de Notebook 4 lance maintenant les 3 trainings ;
-- la comparaison entre Gaussian, Uniform et Laplace est plus propre ;
-- les figures et les fichiers de synthese sont plus utiles pour le rendu final.
+- `notebook1_setup.ipynb`
+- `notebook2_forward_process.ipynb`
+- `notebook3_architecture.ipynb`
+- `notebook4_training.ipynb`
+- `notebook5_evaluation.ipynb`
+- `notebook6_writeup.ipynb`
 
-## Changements principaux
+Ces notebooks portent l'etude fondamentale : influence du bruit gaussien, uniforme et laplacien sur un pipeline de diffusion controle.
 
-### Notebook 4 - Training
+## 2. Extension appliquee : Battery Sentinel
 
-Avant :
-- il fallait changer `NOISE_TYPE` a la main ;
-- il fallait relancer le notebook plusieurs fois ;
-- le suivi des runs etait plus disperse.
+Les notebooks ajoutes prolongent directement cette etude vers un systeme interpretable de suivi batterie :
 
-Maintenant :
-- Notebook 4 lance automatiquement `gaussian`, `uniform`, puis `laplace` ;
-- chaque run garde ses propres checkpoints, logs, TensorBoard et images ;
-- les 3 runs utilisent les memes controles experimentaux :
-  - meme architecture,
-  - meme budget de training,
-  - meme seed d'initialisation,
-  - meme seed pour l'ordre des donnees ;
-- la taille de batch a ete augmentee pour mieux utiliser le GPU Colab ;
-- un fichier `training_campaign_summary.json` est sauvegarde a la fin.
+- `notebook7_battery_sentinel_data.ipynb`
+- `notebook8_battery_sentinel_twin.ipynb`
+- `notebook9_battery_sentinel_router.ipynb`
+- `notebook10_battery_sentinel_dashboard.ipynb`
 
-Pourquoi c'est utile :
-- moins de manipulations manuelles ;
-- moins de risque d'oublier un run ou de changer un parametre par erreur ;
-- comparaison plus defendable scientifiquement.
+Le lien avec la premiere partie est volontairement explicite :
 
-### Notebook 5 - Evaluation
+- `gaussian` -> variation normale du systeme
+- `uniform` -> telemetrie bornee, quantification, resolution limitee
+- `laplace` -> chocs impulsifs, anomalies rares, deviations brusques
 
-Avant :
-- le notebook savait comparer plusieurs runs, mais la situation etait souvent incomplete ;
-- il manquait une vraie synthese compacte des resultats.
+## Role de chaque notebook Battery Sentinel
 
-Maintenant :
-- il charge les 3 runs issus de la campagne unique de Notebook 4 ;
-- il verifie si les controles d'entrainement sont coherents entre les runs disponibles ;
-- il produit un fichier `evaluation_summary.json` ;
-- il produit aussi une figure `metric_overview.png` avec les mesures principales.
+### Notebook 7
 
-Pourquoi c'est utile :
-- la comparaison est plus lisible ;
-- le notebook final peut reutiliser une synthese automatique ;
-- on voit plus vite quel run est meilleur selon la loss ou le MSE.
+- generation de sessions batterie simulees ;
+- construction explicite des trois regimes d'incertitude ;
+- sauvegarde du dataset de travail et des figures d'exemples.
 
-### Notebook 6 - Write-up
+### Notebook 8
 
-Avant :
-- le notebook final etait plus proche d'un brouillon ;
-- il fallait encore beaucoup interpreter a la main.
+- apprentissage d'un jumeau predictif nominal ;
+- evaluation de ce jumeau sur les trois regimes ;
+- sauvegarde du modele et des courbes d'entrainement.
 
-Maintenant :
-- il construit un tableau de bord plus propre a partir des vraies figures ;
-- il lit automatiquement `training_campaign_summary.json` et `evaluation_summary.json` ;
-- il genere un texte de synthese plus clair pour le rapport ;
-- il garde les limites methodologiques visibles.
+### Notebook 9
 
-Pourquoi c'est utile :
-- meilleur support pour le rendu enseignant ;
-- plus simple a transformer en HTML ou PDF ;
-- contribution plus visible de notre cote.
+- calcul des residus du jumeau ;
+- routage des residus vers les regimes gaussien, uniforme ou laplacien ;
+- production d'actions interpretablees : surveillance normale, demande de meilleure telemetrie, ou alerte d'inspection.
 
-## Correction scientifique importante
+### Notebook 10
 
-La distinction suivante est maintenant explicite dans les notebooks :
-- `Gaussian` = baseline DDPM exacte ;
-- `Uniform` et `Laplace` = experiences surrogate a variance alignee.
+- synthese complete entre l'etude diffusionnelle initiale et le prototype batterie ;
+- creation du tableau de bord final et des fichiers de synthese.
 
-Cela evite de presenter les 3 cas comme s'ils avaient exactement le meme statut theorique.
+## Nettoyage effectue
 
-## Outils et sorties utiles ajoutes
+Les anciens notebooks d'extension qui ne correspondaient plus a cette direction ont ete retires :
 
-- `TensorBoard` pour suivre les runs plus proprement ;
-- `training_campaign_summary.json` pour resumer la campagne d'entrainement ;
-- `evaluation_summary.json` pour resumer les mesures finales ;
-- `metric_overview.png` pour une presentation plus rapide ;
-- `summary_figure.png` pour le notebook final.
+- `notebook7_iterative_forward_ablation.ipynb`
+- `notebook8_cross_dataset_validation.ipynb`
 
-## Message simple pour valider les commits
+Les deux services conserves sont :
 
-En resume, ces commits servent a :
-- automatiser les 3 trainings principaux dans un seul notebook ;
-- garder une separation propre des artefacts par distribution ;
-- renforcer le controle experimental entre les runs ;
-- ameliorer la lecture des resultats ;
-- rendre le notebook final plus presentable.
+- `:9000` pour l'explorateur local
+- `:9001` pour les slides
 
-## Suite logique
+## Utilite pour le projet
 
-Apres ces changements :
-1. executer Notebook 4 une seule fois pour lancer les 3 runs ;
-2. executer Notebook 5 pour generer la comparaison complete ;
-3. executer Notebook 6 pour la version finale du rapport ;
-4. exporter le notebook final en HTML pour le rendu.
+La premiere couche montre que les trois distributions de bruit n'ont pas le meme comportement dans un cadre generatif controle.
+
+La seconde couche reutilise cette meme decomposition comme logique de decision dans un systeme applique. Le projet ne se limite donc plus a une comparaison de distributions ; il devient un prototype de routage d'incertitude interpretable pour le suivi batterie.

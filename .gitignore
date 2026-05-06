@@ -1,0 +1,12 @@
+﻿.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+docs/.quarto/
+docs/_site/
+research_extension_output/active_services.json
+research_extension_output/active_services.txt
+diffusion_noise_project/diffusion_noise_project/__pycache__/
+diffusion_noise_project/diffusion_noise_project/research_extension/data/
+diffusion_noise_project/diffusion_noise_project/research_extension/
