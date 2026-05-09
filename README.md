@@ -147,25 +147,6 @@ Le dépôt contient :
 - les checkpoints du modèle de diffusion ;
 - les sorties de Battery Sentinel ;
 
-## Exécution conseillée
-
-### Si la partie diffusion est déjà terminée
-
-Il n'est pas nécessaire de relancer toute la première partie si les sorties sont déjà présentes.
-
-Dans ce cas, il suffit de lancer ensuite :
-
-- Notebook 7
-- Notebook 8
-- Notebook 9
-- Notebook 10
-
-### Si tout doit être refait depuis zéro
-
-L'ordre conseillé est :
-
-- Notebook 1 à Notebook 6
-- puis Notebook 7 à Notebook 10
 
 
 
