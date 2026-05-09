@@ -1,0 +1,27 @@
+﻿.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+docs/.quarto/
+docs/_site/
+research_extension_output/active_services.json
+research_extension_output/active_services.txt
+diffusion_noise_project/diffusion_noise_project/__pycache__/
+diffusion_noise_project/diffusion_noise_project/research_extension/data/
+diffusion_noise_project/diffusion_noise_project/research_extension/
+
+## Local explorer / slides only
+docs/slides.qmd
+docs/slides.html
+docs/slides_files/
+docs/assets/slides/
+research_extension/
+research_extension_output/
+run_research_app.ps1
+run_research_slides.ps1
+start_research_stack.ps1
+stop_research_stack.ps1
+refresh_research_outputs.ps1
+setup_research_env.ps1
+package.json
